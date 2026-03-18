@@ -1,7 +1,7 @@
 {
   "vendor": "sunhouse",
   "name": "whatsapp-lead-capture-pdp",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "title": "Whatsapp Lead Capture PDP",
   "description": "Whatsapp Lead Capture PDP - For product page only. Dynamic capture product data for fetch the WhatsApp message information.",
   "builders": {
