@@ -1,9 +1,9 @@
 {
   "vendor": "sunhouse",
-  "name": "whatsapp-dynamic-btn",
+  "name": "whatsapp-lead-capture-pdp",
   "version": "1.0.0",
-  "title": "WhatsApp Dynamic Button",
-  "description": "WhatsApp Dynamic Button - For product page and others. Dynamic capture product data for fetch the WhatsApp message information.",
+  "title": "Whatsapp Lead Capture PDP",
+  "description": "Whatsapp Lead Capture PDP - For product page only. Dynamic capture product data for fetch the WhatsApp message information.",
   "builders": {
     "react": "3.x",
     "messages": "1.x",

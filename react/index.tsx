@@ -1,3 +1,3 @@
-import WhatsAppDynamicLink from './WhatsAppDynamicLink'
+import WhatsappLeadCapture from './WhatsappLeadCapture'
 
-export default WhatsAppDynamicLink
+export default WhatsappLeadCapture

@@ -9,7 +9,7 @@ A VTEX IO app that creates a dynamic WhatsApp button for product pages. The butt
 ```json
 {
   "dependencies": {
-    "sunhouse.whatsapp-dynamic-btn": "0.x"
+    "sunhouse.whatsapp-lead-capture-pdp": "1.x"
   }
 }
 ```
@@ -19,7 +19,7 @@ A VTEX IO app that creates a dynamic WhatsApp button for product pages. The butt
 ```json
 {
   "store.product": {
-    "blocks": ["whatsapp-dynamic-button"]
+    "blocks": ["whatsapp-lead-capture-btn"]
   }
 }
 ```
@@ -28,22 +28,24 @@ A VTEX IO app that creates a dynamic WhatsApp button for product pages. The butt
 
 | Block name | Description |
 | ---------- | ----------- |
-| `whatsapp-dynamic-button` | WhatsApp button with dynamic product information |
+| `whatsapp-lead-capture-btn` | WhatsApp button with dynamic product information |
 
-### `whatsapp-dynamic-button` props
+### `whatsapp-lead-capture-btn` props
 
 | Prop name | Type | Description | Default value |
 | --------- | ---- | ----------- | ------------- |
 | `text` | `string` | Button text | `"ENTRE EM CONTATO"` |
 | `phone` | `string` | WhatsApp phone number (with country code and area code, numbers only) | `"5511994877664"` |
 | `collectionId` | `string` | Collection ID to include collection name in message (optional) | - |
+| `message` | `string` | Texto comunicativo antes do SKU (o nome do produto e a coleção são inseridos automaticamente). | `"Olá, tenho interesse no produto"` |
+| `messageSuffix` | `string` | Sufixo opcional anexado no final da mensagem (depois de tudo, inclusive coleção). Deixe vazio para não aparecer. | `""` |
 | `showIcon` | `boolean` | Show WhatsApp icon | `true` |
 
 ### Example usage
 
 ```json
 {
-  "whatsapp-dynamic-button": {
+  "whatsapp-lead-capture-btn": {
     "props": {
       "text": "Fale no WhatsApp",
       "phone": "5511988887777",
@@ -59,8 +61,48 @@ A VTEX IO app that creates a dynamic WhatsApp button for product pages. The butt
 The app automatically captures the current product information from the product context and generates a WhatsApp message. If a `collectionId` is provided and the product belongs to that collection, the collection name will be included in the message.
 
 **Message format:**
-- With collection: "Olá, estou entrando em contato sobre o produto {productName} da coleção {collectionName}"
-- Without collection: "Olá, estou entrando em contato sobre o produto {productName}" 
+- With collection: `message` + `productName` + ` da coleção ${collectionName}` + `messageSuffix`
+- Without collection: `message` + `productName` + `messageSuffix`
+
+## Pixel event (dataLayer)
+On click of the WhatsApp button (PDP only), the app pushes a custom event to `window.dataLayer`.
+
+Event name:
+`whatsapp-lead-capture-app`
+
+Payload format (example):
+```js
+window.dataLayer.push({
+  event: "whatsapp-lead-capture-app",
+  pageType: "product",
+  sku: "79115",
+  productId: "79115",
+  productName: "NOME DO PRODUTO",
+  collectionId: "123",
+  collectionName: "NOME DA COLECAO"
+})
+```
+
+Fields sent by the app:
+- `event`: `whatsapp-lead-capture-app`
+- `pageType`: constant `"product"`
+- `sku`: product code/SKU (best-effort: `selectedItem.itemId`, fallback `product.items[0].itemId`)
+- `productId`: best-effort: `product.productId`, then `productReference`, then `product.id`
+- `productName`: from `product.productName`
+- `collectionId` / `collectionName`: only when the `collectionId` prop is provided and the product contains that cluster in `productClusters`
+
+Notes:
+- If VTEX product context does not contain the expected fields, `sku`/`productId` can end up as `undefined` (no crash).
+- The event is fired on `onClick` of the WhatsApp link (before opening the WhatsApp tab).
+
+## How to test
+1. In your VTEX theme/editor, add `whatsapp-lead-capture-btn` to `store.product.blocks` (PDP).
+2. Configure the block props as needed (at least `phone`).
+3. Open a product detail page in the browser.
+4. Open DevTools Console and keep it open.
+5. Click the WhatsApp button.
+6. In the Console, check `window.dataLayer` for a new object where `event === "whatsapp-lead-capture-app"`.
+   You can run: `window.dataLayer.slice().reverse().find(e => e?.event === "whatsapp-lead-capture-app")`.
 
 ## Customization
 

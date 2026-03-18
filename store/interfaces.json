@@ -1,5 +1,5 @@
 {
-    "whatsapp-dynamic-button": {
-        "component": "WhatsAppDynamicLink"
+    "whatsapp-lead-capture-btn": {
+        "component": "WhatsappLeadCapture"
     }
 }

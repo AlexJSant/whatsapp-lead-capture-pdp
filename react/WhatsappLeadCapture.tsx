@@ -1,6 +1,7 @@
 import React from "react"
 import { useProduct } from "vtex.product-context"
 import { useCssHandles } from "vtex.css-handles"
+import { pushWhatsappLeadCapturePixel } from "./whatsappLeadCapturePixel"
 
 type StorefrontFunctionComponent<P = {}> = React.FC<P> & {
   schema?: Record<string, unknown>
@@ -11,14 +12,22 @@ interface Props {
   collectionId?: string
   showIcon?: boolean
   phone?: string
+  messageSuffix?: string
+  message?: string
 }
 
-const WhatsAppDynamicLink: StorefrontFunctionComponent<Props> = ({
-  text = "ENTRE EM CONTATO",
-  collectionId,
-  showIcon = true,
+const WhatsappLeadCapture: StorefrontFunctionComponent<Props> = ({
+  text = "Comprar por WhatsApp",
   phone = "5511994877664",
+  message = "Olá! Vi no site e quero saber mais sobre o produto:",
+  collectionId,
+  messageSuffix = "",
+  showIcon = true,
 }) => {
+  // CSS handles are a styling "contract" with the consuming theme.
+  // If you ever decide to rename these handles (for example, to include a
+  // `WhatsappLeadCapture` prefix), you must update this list (and any related
+  // docs/themes that rely on the old names) to avoid breaking customization.
   const CSS_HANDLES = [
     "whatsappDynamicButtonLink",
     "whatsappDynamicButtonIcon",
@@ -34,22 +43,37 @@ const WhatsAppDynamicLink: StorefrontFunctionComponent<Props> = ({
     ? productClusters?.find(cluster => cluster.id === collectionId)?.name
     : undefined
 
-  const messageBase = collectionName
-    ? `Olá, estou entrando em contato sobre o produto ${productName} da coleção ${collectionName}`
-    : `Olá, estou entrando em contato sobre o produto ${productName}`
+  const collectionClause = collectionName ? ` da coleção ${collectionName}` : ""
+
+  const baseMessage = `${message.trimEnd()} ${productName ?? ""}${collectionClause}`
+  const rawSuffix = messageSuffix ?? ""
+  const suffixTrimmed = rawSuffix.trim()
+  const fullMessage = suffixTrimmed
+    ? `${baseMessage}${rawSuffix.startsWith(" ") ? "" : " "}${rawSuffix}`
+    : baseMessage
 
   const link = `https://api.whatsapp.com/send?phone=${encodeURIComponent(
     phone
   )}&text=${encodeURIComponent(
-    messageBase
+    fullMessage
   )}`
 
+  const handleClick = React.useCallback(() => {
+    pushWhatsappLeadCapturePixel({
+      productContext,
+      productName,
+      collectionId,
+      collectionName,
+    })
+  }, [productContext, productName, collectionId, collectionName])
+
   return (
-    <a 
-      href={link} 
-      target="_blank" 
+    <a
+      href={link}
+      target="_blank"
       rel="noopener noreferrer"
       className={handles.whatsappDynamicButtonLink}
+      onClick={handleClick}
     >
       {showIcon && (
         <span aria-hidden="true" className={handles.whatsappDynamicButtonIcon} style={{ display: 'inline-flex', marginRight: 8 }}>
@@ -76,8 +100,8 @@ const WhatsAppDynamicLink: StorefrontFunctionComponent<Props> = ({
   )
 }
 
-WhatsAppDynamicLink.schema = {
-  title: "WhatsApp Dynamic Link",
+WhatsappLeadCapture.schema = {
+  title: "Whatsapp Lead Capture",
   description:
     "Link para WhatsApp exibido para todo produtos apenas na PDP. Texto editável.",
   type: "object",
@@ -85,7 +109,21 @@ WhatsAppDynamicLink.schema = {
     text: {
       title: "Texto do botão",
       type: "string",
-      default: "Compre por WhatsApp",
+      default: "Comprar por WhatsApp",
+    },
+    phone: {
+      title: "Telefone WhatsApp (com DDI e DDD)",
+      description: "Apenas números. Ex.: 5511999998888",
+      type: "string",
+      default: "5511994877664"
+    },
+    message: {
+      title: "Mensagem (texto comunicativo)",
+      description:
+        'Texto editável no Site Editor. O nome do produto e (quando aplicável) a coleção são inseridos automaticamente. Ex.: "Olá, tenho interesse no produto".',
+      type: "string",
+      default:
+        "Olá! Vi no site e quero saber mais sobre o produto:",
     },
     collectionId: {
       title: "ID da coleção (opcional)",
@@ -93,11 +131,12 @@ WhatsAppDynamicLink.schema = {
         "Se informado e presente no produto, o nome da coleção será adicionado à mensagem.",
       type: "string",
     },
-    phone: {
-      title: "Telefone WhatsApp (com DDI e DDD)",
-      description: "Apenas números. Ex.: 5511999998888",
+    messageSuffix: {
+      title: "Sufixo da mensagem (opcional)",
+      description:
+        'Se preenchido, será anexado no final da mensagem do WhatsApp (depois de tudo, inclusive coleção). Ex.: " | soure-ecomm".',
       type: "string",
-      default: "5511994877664"
+      default: "",
     },
     showIcon: {
       title: "Mostrar ícone do WhatsApp",
@@ -107,4 +146,4 @@ WhatsAppDynamicLink.schema = {
   },
 }
 
-export default WhatsAppDynamicLink
+export default WhatsappLeadCapture
